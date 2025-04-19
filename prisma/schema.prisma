@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -14,4 +13,102 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model 
+model Startup {
+  id                 String           @id @default(uuid()) @map("_id")
+  nome               String           @unique
+  slogan             String
+  anoFundacao        Int
+  pitchConvincente   Int              @default(0)
+  produtoComBugs     Int              @default(0)
+  tracaoUsuarios     Int              @default(0)
+  investidorIrritado Int              @default(0)
+  fakeNews           Int              @default(0)
+  vitoriasEmBatalha  Int              @default(0)
+  vitoriasEmTorneio  Int              @default(0)
+  batalhas           BatalhaStartup[]
+  eventos            EventosBatalha[]
+  StartupTorneio     StartupTorneio[]
+}
+
+model Torneio {
+  id             String           @id @default(uuid()) @map("_id")
+  nome           String           @unique
+  status         ESTADO_TORNEIO   @default(AGUARDANDO)
+  vencedor_id    String?
+  Batalha        Batalha[]
+  StartupTorneio StartupTorneio[]
+}
+
+model StartupTorneio {
+  id          String         @id @default(uuid()) @map("_id")
+  pontos      Int            @default(70)
+  vencedor_id String?
+  status      ESTADO_STARTUP @default(ESPERA)
+  startup_id  String
+  startup     Startup        @relation(fields: [startup_id], references: [id], onDelete: Cascade)
+  torneio_id  String
+  torneio     Torneio        @relation(fields: [torneio_id], references: [id], onDelete: Cascade)
+
+  @@unique([startup_id, torneio_id], name: "unique_startup_torneio")
+}
+
+model Batalha {
+  id            String           @id @default(uuid()) @map("_id")
+  vencedor_id   String?
+  rodada        RODADA           @default(QUARTAS)
+  status        ESTADO_BATALHA   @default(PENDENTE)
+  torneio_id    String
+  torneio       Torneio          @relation(fields: [torneio_id], references: [id], onDelete: Cascade)
+  participantes BatalhaStartup[]
+  eventos       EventosBatalha[]
+}
+
+model BatalhaStartup {
+  id         String  @id @default(uuid()) @map("_id")
+  startup_id String
+  startup    Startup @relation(fields: [startup_id], references: [id], onDelete: Cascade)
+  batalha_id String
+  batalha    Batalha @relation(fields: [batalha_id], references: [id], onDelete: Cascade)
+
+  @@unique([startup_id, batalha_id], name: "unique_startup_batalha")
+}
+
+model EventosBatalha {
+  id                 String  @id @default(uuid()) @map("_id")
+  pitchConvincente   Boolean @default(false)
+  produtoComBugs     Boolean @default(false)
+  tracaoUsuarios     Boolean @default(false)
+  investidorIrritado Boolean @default(false)
+  fakeNews           Boolean @default(false)
+  batalha_id         String
+  batalha            Batalha @relation(fields: [batalha_id], references: [id], onDelete: Cascade)
+  startup_id         String
+  startup            Startup @relation(fields: [startup_id], references: [id], onDelete: Cascade)
+
+  @@unique([batalha_id, startup_id], name: "unique_eventos_batalha")
+}
+
+enum ESTADO_BATALHA {
+  PENDENTE
+  EM_ANDAMENTO
+  FINALIZADA
+}
+
+enum ESTADO_STARTUP {
+  ESPERA
+  ATIVA
+  ELIMINADA
+  FINALIZADA
+}
+
+enum ESTADO_TORNEIO {
+  AGUARDANDO
+  EM_ANDAMENTO
+  FINALIZADO
+}
+
+enum RODADA {
+  QUARTAS
+  SEMIFINAL
+  FINAL
+}
