@@ -22,4 +22,7 @@ router.post("/batalha/:id/iniciar", batalhaController.iniciarBatalha);
 // ROTA PARA ENCERRAR BATALHA
 router.post("/batalha/:id/encerrar", batalhaController.encerrarBatalha);
 
+// ROTA PARA PEGAR AS STARTUPS QUE ESTÃO NA BATALHA
+router.get("/batalha/:id/startups", batalhaController.getStartupsNaBatalha);
+
 export default router;

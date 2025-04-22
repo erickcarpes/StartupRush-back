@@ -6,11 +6,11 @@ class RankingService {
 
     const ranking = startups.map((startup) => {
       const plusMinus =
-        startup.pitchConvincente * 6 +
-        startup.tracaoUsuarios * 3 -
-        startup.produtoComBugs * 4 -
-        startup.investidorIrritado * 6 -
-        startup.fakeNews * 8;
+        startup.pitchConvincenteTotal * 6 +
+        startup.tracaoUsuariosTotal * 3 -
+        startup.produtoComBugsTotal * 4 -
+        startup.investidorIrritadoTotal * 6 -
+        startup.fakeNewsTotal * 8;
       return {
         ...startup,
         plusMinus,

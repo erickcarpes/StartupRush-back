@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { TorneioService } from "../services/torneioService";
+import { RODADA } from "@prisma/client";
 
 const torneioService = new TorneioService();
 
@@ -131,6 +132,51 @@ class TorneioController {
       res.status(200).json(torneio);
     } catch (error) {
       console.error("Erro avançando rodada do torneio:", error);
+      next(error);
+    }
+  }
+
+  async startupsNaoParticipantes(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<any> {
+    try {
+      const { id } = req.params;
+      const startups = await torneioService.startupsNaoParticipantes({ id });
+      res.status(200).json(startups);
+    } catch (error) {
+      console.error("Erro buscando startups não participantes:", error);
+      next(error);
+    }
+  }
+
+  async startupsParticipantes(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<any> {
+    try {
+      const { id } = req.params;
+      const startups = await torneioService.startupsParticipantes({ id });
+      res.status(200).json(startups);
+    } catch (error) {
+      console.error("Erro buscando startups participantes:", error);
+      next(error);
+    }
+  }
+
+  async getBatalhasPorRodada(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<any> {
+    try {
+      const { id } = req.params;
+      const startups = await torneioService.getBatalhasPorRodada(id);
+      res.status(200).json(startups);
+    } catch (error) {
+      console.error("Erro buscando startups por rodada:", error);
       next(error);
     }
   }

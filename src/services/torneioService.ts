@@ -1,3 +1,4 @@
+import { RODADA } from "@prisma/client";
 import { prisma } from "../prisma/client";
 
 interface createTorneio {
@@ -192,10 +193,18 @@ class TorneioService {
       throw new Error("Startup já adicionada ao torneio");
     }
 
+    const startup = await prisma.startup.findUnique({
+      where: { id: startup_id },
+    });
+    if (!startup) {
+      throw new Error("Startup não encontrada");
+    }
+
     const startupTorneio = await prisma.startupTorneio.create({
       data: {
         torneio_id,
         startup_id,
+        nome: startup.nome,
       },
     });
 
@@ -213,7 +222,7 @@ class TorneioService {
             where: {
               unique_startup_torneio: {
                 torneio_id: torneio_id,
-                startup_id: startup.id,
+                startup_id: startup.startup_id,
               },
             },
             data: { status: "ATIVA" },
@@ -242,7 +251,7 @@ class TorneioService {
       });
       await prisma.startup.update({
         where: { id: startupVivas[0].startup_id },
-        data: { vitoriasEmTorneio: { increment: 1 } },
+        data: { vitoriasEmTorneioTotal: { increment: 1 } },
       });
       await prisma.startupTorneio.updateMany({
         where: { torneio_id: id },
@@ -314,12 +323,28 @@ class TorneioService {
       }
     } else if (classificados.length % 2 !== 0) {
       const startupDesempate = await prisma.startupTorneio.findMany({
-        where: { id: { in: classificados } },
+        where: { startup_id: { in: classificados } },
         orderBy: { pontos: "desc" },
         take: 1,
       });
-      desempate_id = startupDesempate[0].id;
+      desempate_id = startupDesempate[0].startup_id;
+
+      await prisma.startupTorneio.update({
+        where: {
+          unique_startup_torneio: {
+            torneio_id: id,
+            startup_id: desempate_id,
+          },
+        },
+        data: { pontos: { increment: 30 } },
+      });
+
       classificados = classificados.filter((id) => id !== desempate_id);
+
+      await prisma.startup.update({
+        where: { id: desempate_id },
+        data: { pontosTotal: { increment: 30 } },
+      });
 
       for (let i = 0; i < classificados.length; i += 2) {
         const batalha = await prisma.batalha.create({
@@ -344,7 +369,7 @@ class TorneioService {
           }),
         ]);
       }
-      await prisma.batalha.create({
+      const batalhaDesempate = await prisma.batalha.create({
         data: {
           torneio_id: id,
           rodada: "SEMIFINAL",
@@ -354,7 +379,7 @@ class TorneioService {
       });
       await prisma.batalhaStartup.create({
         data: {
-          batalha_id: id,
+          batalha_id: batalhaDesempate.id,
           startup_id: desempate_id,
         },
       });
@@ -366,6 +391,109 @@ class TorneioService {
       fase,
       desempate_id,
     };
+  }
+
+  async startupsNaoParticipantes({ id }: readDeleteTorneio) {
+    const torneio = await prisma.torneio.findUnique({
+      where: { id },
+    });
+    if (!torneio) {
+      throw new Error("Torneio não encontrado");
+    }
+
+    const startupsNaoParticipantes = await prisma.startup.findMany({
+      where: {
+        StartupTorneio: {
+          none: {
+            torneio_id: id,
+          },
+        },
+      },
+    });
+
+    if (!startupsNaoParticipantes || startupsNaoParticipantes.length === 0) {
+      return {
+        message: "Nenhuma startup encontrada que não participe do torneio",
+      };
+    }
+
+    return startupsNaoParticipantes;
+  }
+
+  async startupsParticipantes({ id }: readDeleteTorneio) {
+    const torneio = await prisma.torneio.findUnique({
+      where: { id },
+    });
+    if (!torneio) {
+      throw new Error("Torneio não encontrado");
+    }
+
+    const startupsParticipantes = await prisma.startupTorneio.findMany({
+      where: { torneio_id: id, status: { not: "ESPERA" } },
+      include: {
+        startup: true,
+      },
+      orderBy: {
+        pontos: "desc",
+      },
+    });
+
+    if (!startupsParticipantes || startupsParticipantes.length === 0) {
+      return {
+        message: "Nenhuma startup encontrada que participe do torneio",
+      };
+    }
+
+    return startupsParticipantes;
+  }
+
+  // Função para buscar as batalhas da rodada
+  async getBatalhasPorRodada(torneioId: string) {
+    const rodadasPrioritarias: RODADA[] = ["FINAL", "SEMIFINAL", "QUARTAS"];
+
+    let batalhasCompletas: Array<{
+      id: string;
+      rodada: RODADA;
+      participantes: {
+        startup: {
+          nome: string;
+          id: string;
+        };
+      }[];
+    }> = [];
+
+    for (const rodada of rodadasPrioritarias) {
+      const batalhas = await prisma.batalha.findMany({
+        where: {
+          torneio_id: torneioId,
+          rodada,
+          status: { in: ["PENDENTE", "EM_ANDAMENTO"] },
+        },
+        include: {
+          participantes: {
+            include: {
+              startup: true,
+            },
+          },
+        },
+      });
+
+      if (batalhas.length > 0) {
+        batalhasCompletas = batalhas;
+        break;
+      }
+    }
+
+    // Mapeia as batalhas para retornar os dados das startups (nome)
+    const batalhasComStartups = batalhasCompletas.map((batalha) => ({
+      id: batalha.id,
+      participantes: batalha.participantes.map((participante) => ({
+        startup_id: participante.startup.id,
+        nome: participante.startup.nome,
+      })),
+    }));
+
+    return batalhasComStartups;
   }
 }
 

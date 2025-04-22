@@ -102,6 +102,22 @@ class BatalhaController {
       next(error);
     }
   }
+
+  // ROTA PARA PEGAR AS STARTUPS QUE ESTÃO NA BATALHA
+  async getStartupsNaBatalha(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<any> {
+    const { id } = req.params;
+    try {
+      const startups = await batalhaService.getStartupsNaBatalha({ id });
+      res.status(200).json(startups);
+    } catch (error) {
+      console.error("Erro buscando startups na batalha:", error);
+      next(error);
+    }
+  }
 }
 
 export { BatalhaController };

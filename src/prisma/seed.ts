@@ -60,8 +60,6 @@ async function main() {
     startup4,
     startup5,
     startup6,
-    startup7,
-    startup8,
   ];
 
   // Vincula startups ao torneio
@@ -70,6 +68,7 @@ async function main() {
       startup_id: s.id,
       torneio_id: torneio.id,
       status: "ATIVA",
+      nome: s.nome,
     })),
   });
 
@@ -81,7 +80,7 @@ async function main() {
   // Embaralha as startups para batalhas
   const shuffledStartups = startups.sort(() => Math.random() - 0.5);
 
-  for (let i = 0; i < 8; i += 2) {
+  for (let i = 0; i < 6; i += 2) {
     const startupA = shuffledStartups[i];
     const startupB = shuffledStartups[i + 1];
   

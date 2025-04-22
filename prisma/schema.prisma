@@ -14,20 +14,21 @@ datasource db {
 }
 
 model Startup {
-  id                 String           @id @default(uuid()) @map("_id")
-  nome               String           @unique
-  slogan             String
-  anoFundacao        Int
-  pitchConvincente   Int              @default(0)
-  produtoComBugs     Int              @default(0)
-  tracaoUsuarios     Int              @default(0)
-  investidorIrritado Int              @default(0)
-  fakeNews           Int              @default(0)
-  vitoriasEmBatalha  Int              @default(0)
-  vitoriasEmTorneio  Int              @default(0)
-  batalhas           BatalhaStartup[]
-  eventos            EventosBatalha[]
-  StartupTorneio     StartupTorneio[]
+  id                      String           @id @default(uuid()) @map("_id")
+  nome                    String           @unique
+  slogan                  String
+  anoFundacao             Int
+  pontosTotal             Int              @default(0)
+  pitchConvincenteTotal   Int              @default(0)
+  produtoComBugsTotal     Int              @default(0)
+  tracaoUsuariosTotal     Int              @default(0)
+  investidorIrritadoTotal Int              @default(0)
+  fakeNewsTotal           Int              @default(0)
+  vitoriasEmBatalhaTotal  Int              @default(0)
+  vitoriasEmTorneioTotal  Int              @default(0)
+  batalhas                BatalhaStartup[]
+  eventos                 EventosBatalha[]
+  StartupTorneio          StartupTorneio[]
 }
 
 model Torneio {
@@ -40,14 +41,22 @@ model Torneio {
 }
 
 model StartupTorneio {
-  id          String         @id @default(uuid()) @map("_id")
-  pontos      Int            @default(70)
-  vencedor_id String?
-  status      ESTADO_STARTUP @default(ESPERA)
-  startup_id  String
-  startup     Startup        @relation(fields: [startup_id], references: [id], onDelete: Cascade)
-  torneio_id  String
-  torneio     Torneio        @relation(fields: [torneio_id], references: [id], onDelete: Cascade)
+  id                 String         @id @default(uuid()) @map("_id")
+  nome               String
+  pontos             Int            @default(70)
+  pitchConvincente   Int            @default(0)
+  produtoComBugs     Int            @default(0)
+  tracaoUsuarios     Int            @default(0)
+  investidorIrritado Int            @default(0)
+  fakeNews           Int            @default(0)
+  vitoriasEmBatalha  Int            @default(0)
+  vitoriasEmTorneio  Int            @default(0)
+  vencedor_id        String?
+  status             ESTADO_STARTUP @default(ESPERA)
+  startup_id         String
+  startup            Startup        @relation(fields: [startup_id], references: [id], onDelete: Cascade)
+  torneio_id         String
+  torneio            Torneio        @relation(fields: [torneio_id], references: [id], onDelete: Cascade)
 
   @@unique([startup_id, torneio_id], name: "unique_startup_torneio")
 }
