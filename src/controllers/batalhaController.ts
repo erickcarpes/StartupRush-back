@@ -4,6 +4,7 @@ import { BatalhaService } from "../services/batalhaService";
 const batalhaService = new BatalhaService();
 
 class BatalhaController {
+  
   // ROTA POST PARA CRIAR UMA BATALHA
   async createBatalha(
     req: Request,

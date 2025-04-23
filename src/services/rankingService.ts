@@ -1,6 +1,8 @@
 import { prisma } from "../prisma/client";
 
 class RankingService {
+
+  // Método para calcular o ranking dos startups
   async getRanking() {
     const startups = await prisma.startup.findMany();
 

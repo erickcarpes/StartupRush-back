@@ -7,13 +7,6 @@ interface createBatalha {
   startup2_id: string;
 }
 
-interface updateBatalha {
-  id: string;
-  torneio_id?: string;
-  startup1_id?: string;
-  startup2_id?: string;
-}
-
 interface readDeleteBatalha {
   id: string;
 }
@@ -33,6 +26,8 @@ interface eventosBatalha {
 }
 
 class BatalhaService {
+
+  // Método para calcular a pontuação com base nos eventos
   private calcularPontuacao(evento: eventosBatalha): number {
     let pontuacao = 0;
     if (evento.pitchConvincente) pontuacao += 6;
@@ -43,6 +38,14 @@ class BatalhaService {
     return pontuacao;
   }
 
+  // Método para criar uma batalha entre duas startups
+  // e associá-las a um torneio
+  // Verifica se as startups estão ativas e se o torneio está em andamento
+  // Se tudo estiver correto, cria a batalha e associa as startups
+  // Se as startups forem iguais, lança um erro
+  // Se o torneio não estiver em andamento, lança um erro
+  // Se as startups não estiverem ativas, lança um erro
+  // Se tudo estiver correto, retorna a batalha criada
   async createBatalha({ torneio_id, startup1_id, startup2_id }: createBatalha) {
     if (!torneio_id || !startup1_id || !startup2_id) {
       throw new Error(
@@ -56,6 +59,10 @@ class BatalhaService {
     const startupVivas = await prisma.startupTorneio.findMany({
       where: { torneio_id: torneio_id, status: "ATIVA" },
     });
+
+    if (!startupVivas || startupVivas.length === 0) {
+      throw new Error("Nenhuma startup ativa encontrada no torneio");
+    }
 
     const fase = calculaFase(startupVivas.length);
     const batalha = await prisma.batalha.create({
@@ -76,6 +83,9 @@ class BatalhaService {
     return batalha;
   }
 
+  // Método para buscar todas as batalhas
+  // Se não houver batalhas, lança um erro
+  // Se houver batalhas, retorna as batalhas
   async getAllBatalhas() {
     const batalhas = await prisma.batalha.findMany();
     if (!batalhas || batalhas.length === 0) {
@@ -84,6 +94,9 @@ class BatalhaService {
     return batalhas;
   }
 
+  // Método para buscar uma batalha por ID
+  // Se não houver batalha, lança um erro
+  // Se houver batalha, retorna a batalha
   async getBatalhaById({ id }: readDeleteBatalha) {
     const batalha = await prisma.batalha.findUnique({ where: { id } });
     if (!batalha) {
@@ -92,11 +105,20 @@ class BatalhaService {
     return batalha;
   }
 
+  // Método para deletar uma batalha por ID
+  // Se não houver batalha, lança um erro
+  // Se houver batalha, deleta a batalha
   async deleteBatalha({ id }: readDeleteBatalha) {
     const deleted = await prisma.batalha.delete({ where: { id } });
+    if (!deleted) {
+      throw new Error("Batalha não encontrada");
+    }
     return deleted;
   }
 
+  // Método para iniciar uma batalha por ID
+  // Se não houver batalha, lança um erro
+  // Se houver batalha, atualiza o status da batalha para "EM_ANDAMENTO"
   async iniciarBatalha({ id }: readDeleteBatalha) {
     const ifAlreadyExists = await prisma.batalha.findUnique({
       where: { id },
@@ -113,6 +135,15 @@ class BatalhaService {
     return batalha;
   }
 
+  // Método para encerrar uma batalha por ID
+  // Se não houver batalha, lança um erro
+  // Se houver batalha, atualiza o status da batalha para "FINALIZADA"
+  // Calcula a pontuação das startups e atualiza os dados
+  // Se houver empate, sorteia um vencedor
+  // Se houver perdedor, atualiza o status da startupTorneio para "ELIMINADA"
+  // Verfifica se a batalha é a final
+  // Se for a final, atualiza o status do torneio para "FINALIZADO"
+  // Retorna o vencedor, as pontuação, a rodada e se houve empate
   async encerrarBatalha({ id, eventos }: encerrarBatalha) {
     const ifNotIniciated = await prisma.batalha.findUnique({ where: { id } });
     if (!ifNotIniciated || ifNotIniciated.status !== "EM_ANDAMENTO") {
@@ -320,6 +351,11 @@ class BatalhaService {
     });
   }
 
+  // Método para buscar as batalhaStartup em uma batalha
+  // Busca o torneio em andamento
+  // Se não houver torneio, lança um erro
+  // Se houver torneio, busca as startupsTorneio na batalha
+  // Retorna as batalhasStartup e as startupsTorneio
   async getStartupsNaBatalha({ id }: readDeleteBatalha) {
     const batalhas = await prisma.batalhaStartup.findMany({
       where: { batalha_id: id },

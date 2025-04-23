@@ -17,6 +17,13 @@ interface readDeleteStartup {
   id: string;
 }
 class StartupService {
+
+  // Método para criar uma nova startup
+  // Verifica se o nome, slogan e ano de fundação foram fornecidos
+  // Verifica se o ano de fundação é válido (entre 1800 e o ano atual)
+  // Verifica se já existe uma startup com o mesmo nome
+  // Se tudo estiver correto, cria a startup no banco de dados
+  // Retorna a startup criada
   async createStartup({ nome, slogan, anoFundacao }: createStartup) {
     if (!nome || !slogan || !anoFundacao) {
       throw new Error(
@@ -44,6 +51,10 @@ class StartupService {
     return startup;
   }
 
+  // Métodos para ler todas as tartups
+  // Verifica se existem startups no banco de dados
+  // Se não houver, lança um erro
+  // Se houver, retorna todas as startups
   async getAllStartups() {
     const startups = await prisma.startup.findMany();
     if (!startups || startups.length === 0) {
@@ -52,6 +63,11 @@ class StartupService {
     return startups;
   }
 
+  // Método para ler uma startup específica pelo ID
+  // Verifica se o ID foi fornecido
+  // Se não foi, lança um erro
+  // Se o ID foi fornecido, busca a startup no banco de dados
+  // Se a startup não for encontrada, lança um erro
   async getStartupById({ id }: readDeleteStartup) {
     if (!id) {
       throw new Error("ID da startup não fornecido");
@@ -66,6 +82,12 @@ class StartupService {
     return startup;
   }
 
+  // Método para atualizar uma startup
+  // Verifica se o ID foi fornecido
+  // Verifica se pelo menos um campo para atualização foi fornecido
+  // Verifica se o ano de fundação é válido (entre 1800 e o ano atual)
+  // Verifica se já existe uma startup com o mesmo nome (exceto a que está sendo atualizada)
+  // Se tudo estiver correto, atualiza a startup no banco de dados
   async updateStartup({ id, nome, slogan, anoFundacao }: updateStartup) {
     if (!id) {
       throw new Error("ID da startup não fornecido");
@@ -99,6 +121,12 @@ class StartupService {
     return startup;
   }
 
+  // Método para deletar uma startup
+  // Verifica se o ID foi fornecido
+  // Se não foi, lança um erro
+  // Se o ID foi fornecido, busca a startup no banco de dados
+  // Se a startup não for encontrada, lança um erro
+  // Se a startup for encontrada, deleta a startup do banco de dados
   async deleteStartup({ id }: readDeleteStartup) {
     await prisma.batalhaStartup.deleteMany({
       where: { startup_id: id },
@@ -113,6 +141,10 @@ class StartupService {
     return startup;
   }
 
+  // Método para deletar todas as startups
+  // Busca todas as startups no banco de dados
+  // Se não houver startups, lança um erro
+  // Se houver, deleta todas as startups do banco de dados
   async deleteAllStartups() {
     const startups = await prisma.startup.deleteMany({});
     if (!startups) {

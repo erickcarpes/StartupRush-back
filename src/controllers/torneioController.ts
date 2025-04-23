@@ -5,6 +5,8 @@ import { RODADA } from "@prisma/client";
 const torneioService = new TorneioService();
 
 class TorneioController {
+
+  // ROTA POST PARA CRIAR UM TORNEIO
   async createTorneio(
     req: Request,
     res: Response,
@@ -20,6 +22,7 @@ class TorneioController {
     }
   }
 
+  // ROTA GET PARA BUSCAR UM TORNEIO POR ID
   async getTorneioById(
     req: Request,
     res: Response,
@@ -37,6 +40,7 @@ class TorneioController {
     }
   }
 
+  // ROTA GET PARA BUSCAR O ÚLTIMO TORNEIO A SER CRIADO
   async getUltimoTorneio(
     req: Request,
     res: Response,
@@ -51,6 +55,7 @@ class TorneioController {
     }
   }
 
+  // ROTA GET PARA BUSCAR O TORNEIO AGUARDANDO
   async getTorneioAguardando(
     req: Request,
     res: Response,
@@ -65,6 +70,7 @@ class TorneioController {
     }
   }
 
+  // ROTA GET PARA BUSCAR O TORNEIO EM ANDAMENTO
   async getTorneioEmAndamento(
     req: Request,
     res: Response,
@@ -79,6 +85,7 @@ class TorneioController {
     }
   }
 
+  // ROTA GET PARA BUSCAR O TORNEIO NAO FINALIZADO
   async getTorneioNaoFinalizado(
     req: Request,
     res: Response,
@@ -93,6 +100,7 @@ class TorneioController {
     }
   }
 
+  // ROTA GET PARA BUSCAR TODOS OS TORNEIOS
   async getAllTorneios(
     req: Request,
     res: Response,
@@ -107,6 +115,7 @@ class TorneioController {
     }
   }
 
+  // ROTA PUT PARA ATUALIZAR UM TORNEIO
   async updateTorneio(
     req: Request,
     res: Response,
@@ -126,6 +135,7 @@ class TorneioController {
     }
   }
 
+  // ROTA DELETE PARA DELETAR UM TORNEIO
   async deleteTorneio(
     req: Request,
     res: Response,
@@ -141,6 +151,7 @@ class TorneioController {
     }
   }
 
+  // ROTA POST PARA INICIAR UM TORNEIO
   async iniciarTorneio(
     req: Request,
     res: Response,
@@ -158,6 +169,7 @@ class TorneioController {
     }
   }
 
+  // ROTA POST PARA ADICIONAR STARTUPS A UM TORNEIO
   async adicionarStartup(
     req: Request,
     res: Response,
@@ -177,6 +189,7 @@ class TorneioController {
     }
   }
 
+  // ROTA POST PARA AVANÇAR RODADAS DO TORNEIO
   async avancarRodada(
     req: Request,
     res: Response,
@@ -191,6 +204,7 @@ class TorneioController {
     }
   }
 
+  // ROTA GET PARA PEGAR AS STARTUPS NÃO QUE ESTÃO NO TORNEIO
   async startupsNaoParticipantes(
     req: Request,
     res: Response,
@@ -205,6 +219,7 @@ class TorneioController {
     }
   }
 
+  // ROTA GET PARA PEGAR AS STARTUPS QUE ESTÃO NO TORNEIO
   async startupsParticipantes(
     req: Request,
     res: Response,
@@ -220,6 +235,7 @@ class TorneioController {
     }
   }
 
+  // ROTA GET PARA PEGAR TODAS AS BATALHAS DE CADA RODADA DO TORNEIO
   async getBatalhasPorRodada(
     req: Request,
     res: Response,

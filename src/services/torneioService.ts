@@ -20,6 +20,13 @@ interface adicionarStartup {
 }
 
 class TorneioService {
+
+  // Método para criar um novo torneio
+  // Verifica se o nome foi fornecido
+  // Se não foi, lança um erro
+  // Se o nome foi fornecido, verifica se já existe um torneio em andamento
+  // Se já existe, lança um erro
+  // Se não existe, cria um novo torneio no banco de dados
   async createTorneio({ nome }: createTorneio) {
     if (!nome) {
       throw new Error("Preencha o campo: nome");
@@ -40,6 +47,10 @@ class TorneioService {
     return torneio;
   }
 
+  // Métodos para ler todos os torneios
+  // Verifica se existem torneios no banco de dados
+  // Se não houver, lança um erro
+  // Se houver, retorna todos os torneios
   async getAllTorneios() {
     const torneios = await prisma.torneio.findMany();
     if (!torneios || torneios.length === 0) {
@@ -48,6 +59,10 @@ class TorneioService {
     return torneios;
   }
 
+  // Método para ler o último torneio criado
+  // Busca o torneio mais recente no banco de dados
+  // Se não houver torneios, lança um erro
+  // Se houver, retorna o torneio mais recente
   async getUltimoTorneio() {
     const torneios = await prisma.torneio.findFirst({
       orderBy: { createdAt: "desc" },
@@ -58,6 +73,10 @@ class TorneioService {
     return torneios;
   }
 
+  // Métodos para ler torneios com status AGUARDANDO
+  // Verifica se existem torneios com status AGUARDANDO no banco de dados
+  // Se não houver, lança um erro
+  // Se houver, retorna o torneio mais recente com status AGUARDANDO
   async getTorneioAguardando() {
     const torneio = await prisma.torneio.findFirst({
       where: { status: { equals: "AGUARDANDO" } },
@@ -69,6 +88,10 @@ class TorneioService {
     return torneio;
   }
 
+  // Métodos para ler torneios com status EM_ANDAMENTO
+  // Verifica se existem torneios com status EM_ANDAMENTO no banco de dados
+  // Se não houver, lança um erro
+  // Se houver, retorna o torneio mais recente com status EM_ANDAMENTO
   async getTorneioEmAndamento() {
     const torneio = await prisma.torneio.findFirst({
       where: { status: { equals: "EM_ANDAMENTO" } },
@@ -80,6 +103,10 @@ class TorneioService {
     return torneio;
   }
 
+  // Métodos para ler torneios com status AGUARDANDO ou EM_ANDAMENTO
+  // Verifica se existem torneios com status AGUARDANDO ou EM_ANDAMENTO no banco de dados
+  // Se não houver, lança um erro
+  // Se houver, retorna o torneio mais recente com status AGUARDANDO ou EM_ANDAMENTO
   async getTorneioNaoFinalizado() {
     const torneio = await prisma.torneio.findFirst({
       where: { status: { not: "FINALIZADO" } },
@@ -91,6 +118,12 @@ class TorneioService {
     return torneio;
   }
 
+  // Método para ler um torneio específico pelo ID
+  // Verifica se o ID foi fornecido
+  // Se não foi, lança um erro
+  // Se o ID foi fornecido, busca o torneio no banco de dados
+  // Se o torneio não for encontrado, lança um erro
+  // Se o torneio for encontrado, retorna o torneio
   async getTorneioById({ id }: readDeleteTorneio) {
     if (!id) {
       throw new Error("ID do torneio não fornecido");
@@ -105,6 +138,14 @@ class TorneioService {
     return torneio;
   }
 
+  // Método para atualizar um torneio
+  // Verifica se o ID foi fornecido
+  // Se não foi, lança um erro
+  // Se o ID foi fornecido, verifica se o nome foi fornecido
+  // Se o nome não foi, lança um erro
+  // Se o nome foi fornecido, verifica se já existe um torneio com esse nome
+  // Se já existe, lança um erro
+  // Se não existe, atualiza o torneio no banco de dados
   async updateTorneio({ id, nome }: updateTorneio) {
     if (!id) {
       throw new Error("ID do torneio não fornecido");
@@ -130,6 +171,10 @@ class TorneioService {
     return torneio;
   }
 
+  // Método para deletar um torneio por ID
+  // Busca o torneio no banco de dados pelo ID
+  // Se o torneio não for encontrado, lança um erro
+  // Se o torneio for encontrado, deleta ele e todas as startups associadas a ele
   async deleteTorneio({ id }: readDeleteTorneio) {
     const torneioExistente = await prisma.torneio.findUnique({ where: { id } });
 
@@ -147,6 +192,10 @@ class TorneioService {
     return { message: "Torneio deletado com sucesso" };
   }
 
+  // Método para deletar todos os torneios
+  // Busca todos os torneios no banco de dados
+  // Se não houver torneios, lança um erro
+  // Se houver, deleta todos os torneios
   async deleteAllTorneios() {
     const torneios = await prisma.torneio.deleteMany();
     if (!torneios) {
@@ -155,6 +204,16 @@ class TorneioService {
     return torneios;
   }
 
+  // Método para iniciar um torneio
+  // Busca o torneio no banco de dados pelo ID
+  // Se o torneio não for encontrado, lança um erro
+  // Se o tonrneio não estiver com status AGUARDANDO, lança um erro
+  // Se o torneio estiver com status AGUARDANDO, busca as startups ativas
+  // Verifica se o número de startups ativas é par e entre 4 e 8
+  // Se não for, lança um erro
+  // Se for, embaralha as startups e cria as batalhas
+  // Atualiza o status do torneio para EM_ANDAMENTO
+  // Retorna o torneio atualizado
   async iniciarTorneio({ id }: readDeleteTorneio) {
     const torneio = await prisma.torneio.findFirst({
       where: { id },
@@ -218,6 +277,17 @@ class TorneioService {
     return torneio;
   }
 
+  // Método para adicionar uma startup a um torneio
+  // Verifica se o torneio existe e está com status AGUARDANDO
+  // Se não estiver, lança um erro
+  // Verifica se a startup já está adicionada ao torneio
+  // Se já estiver, lança um erro
+  // Se não estiver, verifica se a startup existe
+  // Se não existir, lança um erro
+  // Se existir, cria a startupTorneio no banco de dados
+  // Verifica se existem startups na lista de espera
+  // Se houverem 2 startups na lista de espera, atualiza o status delas para ATIVA
+  // Retorna a startupTorneio criada
   async adicionarStartup({ torneio_id, startup_id }: adicionarStartup) {
     const torneio = await prisma.torneio.findUnique({
       where: { id: torneio_id },
@@ -283,6 +353,18 @@ class TorneioService {
     };
   }
 
+  // Método para avançar a rodada do torneio
+  // Verifica se o torneio existe e está com status EM_ANDAMENTO
+  // Se não estiver, lança um erro
+  // Verifica se existem startups ativas no torneio
+  // Calcula a fase do torneio com base no número de startups ativas
+  // Se houver apenas uma startup, finaliza o torneio e atualiza o status para FINALIZADO
+  // Se houver mais de uma startup, verifica se já existem batalhas pendentes
+  // Se houver, lança um erro
+  // Se não houver, embaralha as startups vencedoras e cria as novas batalhas
+  // Verifica se o número de startups ativas é par
+  // Se for, cria as batalhas normalmente
+  // Se não for, escolhe uma startup para desempate e passa ela para a próxima fase
   async avancarRodada() {
     const torneio = await prisma.torneio.findFirst({
       where: { status: "EM_ANDAMENTO" },
@@ -502,6 +584,10 @@ class TorneioService {
   }
 
   // Função para buscar as batalhas da rodada
+  // Busca as batalhas do torneio
+  // Em ordem de prioridade: FINAL, SEMIFINAL, QUARTAS
+  // Se não houver batalhas, retorna um erro
+  // Se houver, retorna as batalhas com os dados das startups
   async getBatalhasPorRodada(torneioId: string) {
     const rodadasPrioritarias: RODADA[] = ["FINAL", "SEMIFINAL", "QUARTAS"];
 
@@ -538,6 +624,10 @@ class TorneioService {
       }
     }
 
+    if (batalhasCompletas.length === 0) {
+      throw new Error("Nenhuma batalha encontrada para a rodada atual.");
+    }
+
     // Mapeia as batalhas para retornar os dados das startups (nome)
     const batalhasComStartups = batalhasCompletas.map((batalha) => ({
       id: batalha.id,
@@ -551,6 +641,7 @@ class TorneioService {
   }
 }
 
+// Função para calcular a fase do torneio com base no número de startups
 export function calculaFase(qtdStartups: number) {
   switch (qtdStartups) {
     case 1:

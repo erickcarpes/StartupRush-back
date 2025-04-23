@@ -4,6 +4,8 @@ import { Request, Response, NextFunction } from "express";
 const startupService = new StartupService();
 
 class StartupController {
+
+  // ROTA POST PARA CRIAR UMA STARTUP
   async createStartup(
     req: Request,
     res: Response,
@@ -23,6 +25,7 @@ class StartupController {
     }
   }
 
+  // ROTA GET PARA BUSCAR UMA STARTUP POR ID
   async getStartupById(
     req: Request,
     res: Response,
@@ -40,6 +43,7 @@ class StartupController {
     }
   }
 
+  // ROTA GET PARA BUSCAR TODAS AS STARTUPS
   async getAllStartups(
     req: Request,
     res: Response,
@@ -54,6 +58,7 @@ class StartupController {
     }
   }
 
+  // ROTA GET PARA ATUALIZAR UMA STARTUP
   async updateStartup(
     req: Request,
     res: Response,
@@ -75,6 +80,7 @@ class StartupController {
     }
   }
 
+  // ROTA DELETE PARA DELETAR UMA STARTUP
   async deleteStartup(
     req: Request,
     res: Response,
