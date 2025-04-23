@@ -37,6 +37,62 @@ class TorneioController {
     }
   }
 
+  async getUltimoTorneio(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<any> {
+    try {
+      const torneio = await torneioService.getUltimoTorneio();
+      res.status(200).json(torneio);
+    } catch (error) {
+      console.error("Erro buscando último torneio:", error);
+      next(error);
+    }
+  }
+
+  async getTorneioAguardando(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<any> {
+    try {
+      const torneio = await torneioService.getTorneioAguardando();
+      res.status(200).json(torneio);
+    } catch (error) {
+      console.error("Erro buscando torneio em andamento:", error);
+      next(error);
+    }
+  }
+
+  async getTorneioEmAndamento(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<any> {
+    try {
+      const torneio = await torneioService.getTorneioEmAndamento();
+      res.status(200).json(torneio);
+    } catch (error) {
+      console.error("Erro buscando torneio em andamento:", error);
+      next(error);
+    }
+  }
+
+  async getTorneioNaoFinalizado(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<any> {
+    try {
+      const torneio = await torneioService.getTorneioNaoFinalizado();
+      res.status(200).json(torneio);
+    } catch (error) {
+      console.error("Erro buscando torneio em andamento:", error);
+      next(error);
+    }
+  }
+
   async getAllTorneios(
     req: Request,
     res: Response,
@@ -127,8 +183,7 @@ class TorneioController {
     next: NextFunction
   ): Promise<any> {
     try {
-      const { id } = req.params;
-      const torneio = await torneioService.avancarRodada({ id });
+      const torneio = await torneioService.avancarRodada();
       res.status(200).json(torneio);
     } catch (error) {
       console.error("Erro avançando rodada do torneio:", error);
@@ -142,8 +197,7 @@ class TorneioController {
     next: NextFunction
   ): Promise<any> {
     try {
-      const { id } = req.params;
-      const startups = await torneioService.startupsNaoParticipantes({ id });
+      const startups = await torneioService.startupsNaoParticipantes();
       res.status(200).json(startups);
     } catch (error) {
       console.error("Erro buscando startups não participantes:", error);
@@ -158,7 +212,7 @@ class TorneioController {
   ): Promise<any> {
     try {
       const { id } = req.params;
-      const startups = await torneioService.startupsParticipantes({ id });
+      const startups = await torneioService.startupsParticipantes();
       res.status(200).json(startups);
     } catch (error) {
       console.error("Erro buscando startups participantes:", error);

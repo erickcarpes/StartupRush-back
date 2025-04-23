@@ -1,4 +1,4 @@
-import { Router, Request, Response, NextFunction } from "express";
+import { Router } from "express";
 import { TorneioController } from "../controllers/torneioController";
 
 const router = Router();
@@ -9,6 +9,18 @@ router.post("/torneio", controller.createTorneio);
 
 // ROTA GET PARA BUSCAR UM TORNEIO POR ID
 router.get("/torneio/:id", controller.getTorneioById);
+
+// ROTA GET PARA BUSCAR O ÚLTIMO TORNEIO
+router.get("/torneios/ultimo", controller.getUltimoTorneio);
+
+// ROTA GET PARA BUSCAR TORNEIO AGUARDANDO
+router.get("/torneios/aguardando", controller.getTorneioAguardando);
+
+// ROTA GET PARA BUSCAR TORNEIO EM ANDAMENTO
+router.get("/torneios/andamento", controller.getTorneioEmAndamento);
+
+// ROTA GET PARA BUSCAR TORNEIO NAO FINALIZADO
+router.get("/torneios/nao-finalizado", controller.getTorneioNaoFinalizado);
 
 // ROTA GET PARA BUSCAR TODOS OS TORNEIOS
 router.get("/torneios", controller.getAllTorneios);
@@ -26,13 +38,13 @@ router.post("/torneio/:id/iniciar", controller.iniciarTorneio);
 router.post("/torneio/:torneio_id/startup", controller.adicionarStartup);
 
 // ROTA PARA AVANÇAR RODADAS DO TORNEIO
-router.post("/torneio/:id/avancar", controller.avancarRodada);
+router.post("/torneio/avancar", controller.avancarRodada);
 
 // ROTA PARA PEGAR AS STARTUPS QUE ESTÃO NO TORNEIO
-router.get("/torneio/:id/startupsRanking", controller.startupsParticipantes);
+router.get("/torneio/startups/ranking", controller.startupsParticipantes);
 
 // ROTA PARA PEGAR AS STARTUPS QUE NÃO ESTÃO NO TORNEIO
-router.get("/torneio/:id/startupsNaoTorneio", controller.startupsNaoParticipantes);
+router.get("/torneios/startupsNaoTorneio", controller.startupsNaoParticipantes);
 
 // ROTA PARA PEGAR AS STARTUPS DE CADA RODADA DO TORNEIO
 router.get("/torneio/:id/batalhas", controller.getBatalhasPorRodada);

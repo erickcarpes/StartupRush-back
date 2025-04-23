@@ -296,9 +296,24 @@ class BatalhaService {
         },
       });
 
+      const vencedor = await tx.startup.findUnique({
+        where: { id: vencedor_id },
+        select: { nome: true, slogan: true },
+      });
+
+      const pontuacaoVencedor = pontuacaoStartups.find(
+        (s) => s.startup_id === vencedor_id
+      );
+
+      const pontosVencedor = pontuacaoVencedor?.pontos || 0;
+
+      const rodada = batalha.rodada;
+
       return {
         message: "Batalha encerrada com sucesso!",
-        vencedor_id,
+        vencedor,
+        pontosVencedor,
+        rodada,
         pontos: pontuacaoStartups,
         empate,
       };
@@ -312,10 +327,37 @@ class BatalhaService {
         startup: true,
       },
     });
+
+    const torneio = await prisma.torneio.findFirst({
+      where: { status: "EM_ANDAMENTO" },
+    });
+
+    if (!torneio) {
+      throw new Error("Torneio não encontrado ou não está em andamento");
+    }
+
+    const startup1Torneio = await prisma.startupTorneio.findUnique({
+      where: {
+        unique_startup_torneio: {
+          startup_id: batalhas[0].startup.id,
+          torneio_id: torneio.id,
+        },
+      },
+    });
+
+    const startup2Torneio = await prisma.startupTorneio.findUnique({
+      where: {
+        unique_startup_torneio: {
+          startup_id: batalhas[1].startup.id,
+          torneio_id: torneio.id,
+        },
+      },
+    });
+
     if (!batalhas || batalhas.length === 0) {
       throw new Error("Nenhuma batalha encontrada");
     }
-    return batalhas;
+    return { batalhas, startup1Torneio, startup2Torneio };
   }
 }
 

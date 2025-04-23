@@ -47,20 +47,13 @@ async function main() {
   const startup8 = await prisma.startup.create({
     data: { nome: "Startup Theta", slogan: "Theta", anoFundacao: 2014 },
   });
-  
+
   // Criação de torneio
   const torneio = await prisma.torneio.create({
     data: { nome: "Torneio de Teste" },
   });
 
-  const startups = [
-    startup1,
-    startup2,
-    startup3,
-    startup4,
-    startup5,
-    startup6,
-  ];
+  const startups = [startup1, startup2, startup3, startup4, startup5, startup6];
 
   // Vincula startups ao torneio
   await prisma.startupTorneio.createMany({
@@ -71,7 +64,7 @@ async function main() {
       nome: s.nome,
     })),
   });
-
+  /*
   await prisma.torneio.update({
     where: { id: torneio.id },
     data: { status: "EM_ANDAMENTO" },
@@ -147,13 +140,13 @@ async function main() {
         status: "ELIMINADA",
       },
     });
+    
   
     console.log(
       `Batalha ${batalha.id}: ${startupA.nome} (${pontosA}) vs ${startupB.nome} (${pontosB}) => ${perdedora.nome} ELIMINADA`
     );
-  }
+    */
 }
-  
 
 main()
   .catch((e) => {

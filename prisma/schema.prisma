@@ -35,6 +35,7 @@ model Torneio {
   id             String           @id @default(uuid()) @map("_id")
   nome           String           @unique
   status         ESTADO_TORNEIO   @default(AGUARDANDO)
+  createdAt      DateTime         @default(now())
   vencedor_id    String?
   Batalha        Batalha[]
   StartupTorneio StartupTorneio[]

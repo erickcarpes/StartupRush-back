@@ -48,6 +48,49 @@ class TorneioService {
     return torneios;
   }
 
+  async getUltimoTorneio() {
+    const torneios = await prisma.torneio.findFirst({
+      orderBy: { createdAt: "desc" },
+    });
+    if (!torneios) {
+      throw new Error("Nenhum torneio encontrado");
+    }
+    return torneios;
+  }
+
+  async getTorneioAguardando() {
+    const torneio = await prisma.torneio.findFirst({
+      where: { status: { equals: "AGUARDANDO" } },
+      orderBy: { createdAt: "desc" },
+    });
+    if (!torneio) {
+      throw new Error("Nenhum torneio aguardando encontrado");
+    }
+    return torneio;
+  }
+
+  async getTorneioEmAndamento() {
+    const torneio = await prisma.torneio.findFirst({
+      where: { status: { equals: "EM_ANDAMENTO" } },
+      orderBy: { createdAt: "desc" },
+    });
+    if (!torneio) {
+      throw new Error("Nenhum torneio em andamento encontrado");
+    }
+    return torneio;
+  }
+
+  async getTorneioNaoFinalizado() {
+    const torneio = await prisma.torneio.findFirst({
+      where: { status: { not: "FINALIZADO" } },
+      orderBy: { createdAt: "desc" },
+    });
+    if (!torneio) {
+      throw new Error("Nenhum torneio não finalizado encontrado");
+    }
+    return torneio;
+  }
+
   async getTorneioById({ id }: readDeleteTorneio) {
     if (!id) {
       throw new Error("ID do torneio não fornecido");
@@ -117,8 +160,11 @@ class TorneioService {
       where: { id },
     });
 
-    if (!torneio || torneio.status !== "AGUARDANDO") {
-      throw new Error("Torneio não encontrado ou já iniciado/finalizado");
+    if (!torneio) {
+      throw new Error("Torneio não encontrado");
+    }
+    if (torneio.status !== "AGUARDANDO") {
+      throw new Error("O torneio já foi iniciado");
     }
 
     const torneioParticipantes = await prisma.startupTorneio.findMany({
@@ -134,7 +180,7 @@ class TorneioService {
       torneioParticipantes.length % 2 !== 0
     ) {
       throw new Error(
-        "O torneio deve ter entre 4 e 8 participantes, e o número de participantes deve ser par."
+        "O torneio deve ter entre 4 e 8 participantes."
       );
     }
 
@@ -237,16 +283,24 @@ class TorneioService {
     };
   }
 
-  async avancarRodada({ id }: readDeleteTorneio) {
+  async avancarRodada() {
+    const torneio = await prisma.torneio.findFirst({
+      where: { status: "EM_ANDAMENTO" },
+      orderBy: { createdAt: "desc" },
+    });
+    if (!torneio) {
+      throw new Error("Nenhum torneio encontrado em andamento");
+    }
+
     const startupVivas = await prisma.startupTorneio.findMany({
-      where: { torneio_id: id, status: "ATIVA" },
+      where: { torneio_id: torneio.id, status: "ATIVA" },
     });
 
     const fase = calculaFase(startupVivas.length);
 
     if (startupVivas.length < 2 && fase === "FINAL") {
       await prisma.torneio.update({
-        where: { id },
+        where: { id: torneio.id },
         data: { status: "FINALIZADO", vencedor_id: startupVivas[0].startup_id },
       });
       await prisma.startup.update({
@@ -254,7 +308,7 @@ class TorneioService {
         data: { vitoriasEmTorneioTotal: { increment: 1 } },
       });
       await prisma.startupTorneio.updateMany({
-        where: { torneio_id: id },
+        where: { torneio_id: torneio.id },
         data: { status: "FINALIZADA" },
       });
       return {
@@ -267,7 +321,7 @@ class TorneioService {
     // Verifica se já existem batalhas pendentes na fase atual
     let batalhas = await prisma.batalha.findMany({
       where: {
-        torneio_id: id,
+        torneio_id: torneio.id,
         status: { in: ["PENDENTE", "EM_ANDAMENTO"] },
       },
       select: { id: true, vencedor_id: true },
@@ -278,7 +332,7 @@ class TorneioService {
       );
 
     const startupsTorneioAtivas = await prisma.startupTorneio.findMany({
-      where: { torneio_id: id, status: "ATIVA" },
+      where: { torneio_id: torneio.id, status: "ATIVA" },
       include: {
         startup: true,
       },
@@ -300,7 +354,7 @@ class TorneioService {
 
         const batalha = await prisma.batalha.create({
           data: {
-            torneio_id: id,
+            torneio_id: torneio.id,
             rodada: fase,
             status: "PENDENTE",
           },
@@ -332,7 +386,7 @@ class TorneioService {
       await prisma.startupTorneio.update({
         where: {
           unique_startup_torneio: {
-            torneio_id: id,
+            torneio_id: torneio.id,
             startup_id: desempate_id,
           },
         },
@@ -349,7 +403,7 @@ class TorneioService {
       for (let i = 0; i < classificados.length; i += 2) {
         const batalha = await prisma.batalha.create({
           data: {
-            torneio_id: id,
+            torneio_id: torneio.id,
             rodada: "SEMIFINAL",
           },
         });
@@ -371,7 +425,7 @@ class TorneioService {
       }
       const batalhaDesempate = await prisma.batalha.create({
         data: {
-          torneio_id: id,
+          torneio_id: torneio.id,
           rodada: "SEMIFINAL",
           vencedor_id: desempate_id,
           status: "FINALIZADA",
@@ -393,9 +447,10 @@ class TorneioService {
     };
   }
 
-  async startupsNaoParticipantes({ id }: readDeleteTorneio) {
-    const torneio = await prisma.torneio.findUnique({
-      where: { id },
+  async startupsNaoParticipantes() {
+    const torneio = await prisma.torneio.findFirst({
+      where: { status: "AGUARDANDO" },
+      orderBy: { createdAt: "desc" },
     });
     if (!torneio) {
       throw new Error("Torneio não encontrado");
@@ -405,31 +460,30 @@ class TorneioService {
       where: {
         StartupTorneio: {
           none: {
-            torneio_id: id,
+            torneio_id: torneio.id,
+            status: { not: "ESPERA" },
           },
         },
       },
     });
 
     if (!startupsNaoParticipantes || startupsNaoParticipantes.length === 0) {
-      return {
-        message: "Nenhuma startup encontrada que não participe do torneio",
-      };
+      throw new Error("Nenhuma startup encontrada que não participe do torneio");
     }
 
     return startupsNaoParticipantes;
   }
 
-  async startupsParticipantes({ id }: readDeleteTorneio) {
-    const torneio = await prisma.torneio.findUnique({
-      where: { id },
+  async startupsParticipantes() {
+    const torneio = await prisma.torneio.findFirst({
+      orderBy: { createdAt: "desc" },
     });
     if (!torneio) {
       throw new Error("Torneio não encontrado");
     }
 
     const startupsParticipantes = await prisma.startupTorneio.findMany({
-      where: { torneio_id: id, status: { not: "ESPERA" } },
+      where: { torneio_id: torneio.id, status: { not: "ESPERA" } },
       include: {
         startup: true,
       },
