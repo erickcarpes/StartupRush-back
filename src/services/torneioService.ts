@@ -543,7 +543,6 @@ class TorneioService {
         StartupTorneio: {
           none: {
             torneio_id: torneio.id,
-            status: { not: "ESPERA" },
           },
         },
       },
