@@ -1,4 +1,4 @@
-import { StartupService } from "../services/StartupService";
+import { StartupService } from "../services/startupService";
 import { Request, Response, NextFunction } from "express";
 
 const startupService = new StartupService();
